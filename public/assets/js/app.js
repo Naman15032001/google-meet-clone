@@ -144,6 +144,10 @@ var AppProcess = (function () {
 
         if (newVideoState == video_states.None) {
             $('#videoCamOnOff').html('<span class="material-icons" style="width: 100%;">videocam_off</span>')
+
+
+            $('#btnScreenShareOnOff').html('<span class="material-icons">present_to_all</span><div>Present Now</div>');
+
             video_st = newVideoState;
             removeVideoStream(rtp_vid_senders);
             return;
@@ -176,6 +180,11 @@ var AppProcess = (function () {
                     },
                     audio: false
                 })
+
+                vstream.oninactive = (e) => {
+                    removeVideoStream(rtp_vid_senders);
+                    $('#btnScreenShareOnOff').html('<span class="material-icons">present_to_all</span><div>Present Now</div>');
+                }
             }
 
             if (vstream && vstream.getVideoTracks().length > 0) {
@@ -192,7 +201,16 @@ var AppProcess = (function () {
             return;
         }
 
-        video_st = newVideoState
+        video_st = newVideoState;
+
+        if (newVideoState == video_states.Camera) {
+            $('#videoCamOnOff').html('<span class="material-icons" style="width: 100%;">videocam_on</span>');
+            $('#btnScreenShareOnOff').html('<span class="material-icons">present_to_all</span><div>Present Now</div>');
+
+        } else if (newVideoState == video_states.ScreenShare) {
+            $('#btnScreenShareOnOff').html('<span class="material-icons text-success">present_to_all</span><div class="text-success">Stop Present Now</div>');
+            $('#videoCamOnOff').html('<span class="material-icons" style="width: 100%;">videocam_off</span>')
+        }
 
 
     }
@@ -337,6 +355,28 @@ var AppProcess = (function () {
         }
     }
 
+    async function closeConnection(connid) {
+        peers_connection[connid] = null;
+        if (peers_connection[connid]) {
+            peers_connection[connid].close();
+            peers_connection[connid] = null;
+        }
+
+        if (remote_aud_stream[connid]) {
+            remote_aud_stream[connid].getTracks().forEach((t) => {
+                if (t.stop) t.stop()
+            })
+            remote_aud_stream[connid] = null
+        }
+
+        if (remote_vid_stream[connid]) {
+            remote_vid_stream[connid].getTracks().forEach((t) => {
+                if (t.stop) t.stop()
+            })
+            remote_vid_stream[connid] = null
+        }
+    }
+
     return {
         setNewConnection: async function (connid) {
             await setConnection(connid)
@@ -346,6 +386,9 @@ var AppProcess = (function () {
         },
         processClientFunc: async function (data, from_connid) {
             await SDPProcess(data, from_connid)
+        },
+        closeConnectionCall: async function (connid) {
+            await closeConnection(connid)
         }
     }
 
@@ -396,6 +439,11 @@ var MyApp = (function () {
                 }
             }
         });
+
+        socket.on("inform_about_disconnected_user", function (data) {
+            $('#' + data.connId).remove();
+            AppProcess.closeConnectionCall(data.connId)
+        })
 
         socket.on("inform_others_about_me", function (data) {
             addUser(data.other_user_id, data.connId);
