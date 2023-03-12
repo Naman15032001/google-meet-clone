@@ -39,7 +39,8 @@ io.on("connection", (socket) => {
 
     socket.on("SDPProcess", (data) => {
 
-        socket.io(data.to_connid).emit("SDPProcess", {
+        //console.log("sdp process started",data);
+        socket.to(data.to_connid).emit("SDPProcess", {
             message: data.message,
             from_connid: socket.id
         })
