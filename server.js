@@ -27,10 +27,13 @@ io.on("connection", (socket) => {
             meeting_id: data.meetingid
         });
 
+        var userCount = userConnections.length;
+
         other_users.forEach((v) => {
             socket.to(v.connectionId).emit("inform_others_about_me", {
                 other_user_id: data.displayName,
-                connId: socket.id
+                connId: socket.id,
+                userNumber: userCount
             })
         })
 
@@ -70,8 +73,10 @@ io.on("connection", (socket) => {
             userConnections = userConnections.filter((p) => p.connectionId != socket.id);
             var list = userConnections.filter((p) => p.meeting_id == meetingid);
             list.forEach((v) => {
+                var userNumberAfterUserLeave = userConnections.length;
                 socket.to(v.connectionId).emit("inform_about_disconnected_user", {
-                    connId: socket.id
+                    connId: socket.id,
+                    uNumber: userNumberAfterUserLeave
                 })
             })
         }
