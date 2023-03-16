@@ -501,9 +501,22 @@ var MyApp = (function () {
             var div = $("<div>").html("<span class='font-weight-bold mr-3' style='color:black'>" + user_id + "</span>" + lTime + "</br>" + msgData)
             $("#messages").append(div)
 
+            console.log("preeee mmmss")
 
             socket.emit("sendMessage", msgData);
             $("#msgbox").val("")
+
+            console.log("postt mmmss")
+            console.log("here 999 ");
+
+        })
+
+        var url1 = window.location.href;
+        $(".meeting_url").text(url1);
+        console.log("here", $(".meeting_url"))
+
+        $("#divUsers").on("dblclick", "video", function () {
+            this.requestFullscreen();
         })
     }
 
@@ -565,16 +578,114 @@ var MyApp = (function () {
     })
 
     $(document).on("click", ".top-left-participant-wrap", function () {
+        $('.people-heading').addClass("active")
+        $('.chat-heading').removeClass("active")
         $(".g-right-details-wrap").show(300);
         $(".in-call-wrap-up").show(300);
         $(".chat-show-wrap").hide(300);
+
     })
 
     $(document).on("click", ".top-left-chat-wrap", function () {
+        $('.people-heading').removeClass("active")
+        $('.chat-heading').addClass("active")
         $(".g-right-details-wrap").show(300);
         $(".in-call-wrap-up").hide(300);
         $(".chat-show-wrap").show(300);
     })
+
+    $(document).on("click", ".end-call-wrap", function () {
+        $(".top-box-show").css({
+            "display": "block"
+        }).html(`  <div class="top-box align-vertical-middle profile-dialogue-show">
+       <h4 class="mt-3" style="text-align:center; color:white">Leave Meeting</h4>
+       <hr>
+       <div class="call-leave-cancel-action d-flex justify-content-center align-items-center w-100">
+           <a href="/action.html"><button class="call-leave-action btn btn-danger mr-5 ">Leave</button></a>
+           <button class="call-cancel-action btn btn-secondary">Cancel</button>
+       </div>
+   </div>`)
+    })
+
+    $(document).mouseup(function (e) {
+
+        var container = new Array();
+
+        container.push($(".top-box-show"));
+
+        $.each(container, function (key, value) {
+            if (!$(value).is(e.target) && $(value).has(e.target).length == 0) {
+                $(value).empty();
+            }
+        })
+    })
+
+    $(document).mouseup(function (e) {
+
+        var container = new Array();
+
+        container.push($(".g-details"));
+
+        $.each(container, function (key, value) {
+            if (!$(value).is(e.target) && $(value).has(e.target).length == 0) {
+                $(value).hide(300);
+            }
+        })
+    })
+
+    $(document).mouseup(function (e) {
+
+        var container = new Array();
+
+        container.push($(".g-right-details-wrap"));
+
+        $.each(container, function (key, value) {
+            if (!$(value).is(e.target) && $(value).has(e.target).length == 0) {
+                $(value).hide(300);
+            }
+        })
+    })
+
+    $(document).on("click", ".call-cancel-action", function () {
+        $(".top-box-show").html('')
+    })
+
+    $(document).on("click", ".copy_info", function () {
+        var $temp = $("<input>");
+        $("body").append($temp);
+        $temp.val($(".meeting_url").text()).select();
+        document.execCommand("copy");
+        $temp.remove();
+        $('.link-conf').show()
+        setTimeout(() => {
+            $('.link-conf').hide()
+        }, 3000)
+    })
+
+    $(document).on("click", ".meeting-details-button", function () {
+        //$(".g-details").slideToggle(300)
+        $(".g-details").slideDown(300)
+    })
+
+    $(document).on("click", ".g-details-heading-attachment", function () {
+        $(".g-details-heading-show").hide();
+        $('.g-details-heading-show-attachment').show();
+        $(this).addClass("active")
+        $(".g-details-heading-detail").removeClass("active")
+
+    })
+
+    $(document).on("click", ".g-details-heading-detail", function () {
+        $('.g-details-heading-show-attachment').hide();
+        $(".g-details-heading-show").show();
+        $(this).addClass("active")
+        $(".g-details-heading-attachment").removeClass("active")
+
+    })
+
+
+
+
 
 
 
