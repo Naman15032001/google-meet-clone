@@ -1,5 +1,7 @@
 const express = require('express');
+var fs = require("fs");
 const path = require('path');
+const fileUpload = require('express-fileupload')
 var app = express();
 var server = app.listen(3000, () => {
     console.log("Listening on port 3000");
@@ -65,6 +67,26 @@ io.on("connection", (socket) => {
         }
     })
 
+
+    socket.on("fileTransferToOther", (msg) => {
+        console.log(msg);
+        var mUser = userConnections.find((p) => p.connectionId == socket.id);
+        if (mUser) {
+            var meetingid = mUser.meeting_id;
+            var from = mUser.user_id;
+            var list = userConnections.filter((p) => p.meeting_id == meetingid)
+            list.forEach((v) => {
+                socket.to(v.connectionId).emit("showhFileMessage", {
+                    username: msg.username,
+                    meetingid: msg.meetingid,
+                    filePath: msg.filePath,
+                    fileName: msg.fileName,
+                })
+            })
+        }
+    })
+
+
     socket.on("disconnect", function () {
         console.log("User got disconnected");
         var disUser = userConnections.find((p) => p.connectionId == socket.id);
@@ -79,6 +101,32 @@ io.on("connection", (socket) => {
                     uNumber: userNumberAfterUserLeave
                 })
             })
+        }
+
+    })
+})
+
+app.use(fileUpload())
+
+app.post("/attachimg", function (req, res) {
+
+    var data = req.body;
+    var imgFile = req.files.zipfile;
+    console.log(imgFile);
+    console.log(data);
+    var dir = "public/attachment/" + data.meeting_id + "/";
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir)
+    }
+
+    console.log("ok ok ");
+
+    imgFile.mv("public/attachment/" + data.meeting_id + "/" + imgFile.name, function (error) {
+
+        if (error) {
+            console.log("couldnt upload image file , error: ", error);
+        } else {
+            console.log("image file successfully uploaded");
         }
 
     })
